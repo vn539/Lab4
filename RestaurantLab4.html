@@ -1,0 +1,692 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title> - jsFiddle demo</title>
+  
+  <script type='text/javascript' src='http://code.jquery.com/jquery-1.9.1.js'></script>
+  
+  
+  
+  <script type="text/javascript" src="http://code.jquery.com/mobile/1.3.0-beta.1/jquery.mobile-1.3.0-beta.1.js"></script>
+  <link rel="stylesheet" type="text/css" href="http://code.jquery.com/mobile/1.3.0-beta.1/jquery.mobile-1.3.0-beta.1.css">
+  <script type="text/javascript" src="soapclient.js"></script>
+  
+  <link rel="stylesheet" type="text/css" href="/css/result-light.css">
+  
+  <style type='text/css'>
+    #AboutUs
+ {
+    word-wrap: normal; 
+    width: 510px;
+    height: 150px;
+    position: relative;
+    left: 40px;
+}
+#OrderOnline
+{
+    width: 150px;
+    position: Left;
+    right:200px;
+        
+}
+#btnItems
+{
+    width:20px;
+    height: 20px;
+}
+#Weather {
+    width:350px;
+    height:300px;
+    margin-top:5px;
+    left:5px;
+    padding:0px;
+    color: #000000; 
+        
+      }
+#map
+{
+    width:350px;
+    height:300px;
+    margin-top:5px;
+    left:5px;
+    padding:0px;
+    position:relative;
+    
+}
+#map-canvas {
+        height: 100%;
+        margin: 0px;
+    margin-right: 400px;
+        padding: 0px
+      }
+      #panel {
+        position: absolute;
+        top: 5px;
+        left: 50%;
+        margin-left: -180px;
+        z-index: 5;
+        background-color: #fff;
+        padding: 5px;
+        border: 1px solid #999;
+      }
+#directions-panel {
+        height: 100%;
+        font-size: 12px;
+        float: right;
+        width: 390px;
+        overflow: auto;
+      }
+#control {
+        background: #fff;
+        padding: 5px;
+        font-size: 14px;
+        font-family: Arial;
+        border: 1px solid #ccc;
+        box-shadow: 0 2px 2px rgba(33, 33, 33, 0.4);
+        display: none;
+      }
+body {
+    margin:20px;
+}
+h1 {
+    font-size: 2em;
+}
+
+h1:hover {
+    cursor: pointer;
+    color: #f00;
+}
+
+h1:active {
+    color:#555;
+}
+
+#write {
+    font-size: em;
+    color: #ff8800;
+}
+#menuitemprice {
+    font-size: 1em;
+    color: #ff8800;
+}
+input {
+    outline: none;
+     
+        margin: 0px;
+    margin-right: 400px;
+        padding: 4px
+    
+}
+#chart
+{
+    position : absolute;
+  left : 0;
+  width : 150px;
+  margin-left : 10px;
+  margin-top : 20px;
+  color : #000000;
+  padding : 3px;
+}
+}
+
+  </style>
+  
+
+
+<script type='text/javascript'>//<![CDATA[ 
+$(window).load(function(){
+//array to store values
+var stores = Array();
+//input field text
+var inputField = document.getElementById('inputString');
+var clearItems = document.getElementById('clearItems');
+var addItems = document.getElementById('addItems');
+var reviewItems = document.getElementById('reviewItems');
+
+
+//clear the storage
+var clearItemsClick = function clearStorage() {
+    //clear the storage
+    stores = Array();
+    localStorage.clear("database");
+    //visually cleared
+    document.getElementById('write').innerHTML = "storage cleared.";
+}
+clearItems.addEventListener('click', clearItemsClick, false);
+
+// save the string
+var addItemsClick = function saveStatusLocally() {
+    //grab the value of the text box
+    var stringToSave = inputField.value;
+    if ((stringToSave == null) || (stringToSave == "")) {
+        document.getElementById('write').innerHTML = "nothing to store.";
+    } else {
+        //push that value to the array
+        stores.push(stringToSave);
+        //clear the input field for visual 
+        inputField.value = "";
+        //print that value into the local storage named database and joing by a non-breaking space
+      window.localStorage.setItem("database", stores.join("<br>"));
+        //confirm write
+        document.getElementById('write').innerHTML = "data stored.";
+        //clear message after 1s
+        setTimeout(function() {
+            document.getElementById('write').innerHTML = "";
+        }, 1000);
+
+    }
+}
+addItems.addEventListener('click', addItemsClick, false);
+
+// read the string
+var reviewItemsClick = function readStatus() {
+    //print the value of the local storage "database" key
+    if (window.localStorage.getItem("database") == null) {
+        document.getElementById('write').innerHTML = "nothing stored.";
+    } else {
+        document.getElementById('write').innerHTML = window.localStorage.getItem("database");
+    }
+}
+reviewItems.addEventListener('click', reviewItemsClick, false);
+
+
+$("#MainCoursePopup li").hover(
+
+function () {
+    $(this).append($("<span> Select your Choice</span>"));
+},
+
+function () {
+    $(this).find("span:last").remove();
+}
+);
+
+// Show local locations
+function initialize() {
+  var myLatlng = new google.maps.LatLng(38.913209, -94.760504);
+  var myLatlng2 = new google.maps.LatLng(38.957052,-94.663555);
+  var mapOptions = {
+    zoom: 10,
+    center: myLatlng
+  }
+  var map = new google.maps.Map(document.getElementById('map'), mapOptions);
+
+  var marker = new google.maps.Marker({
+      position: myLatlng,
+      map: map,
+      title: 'OGarden Location 1'
+  });
+
+    var marker2 = new google.maps.Marker({
+      position: myLatlng2,
+      map: map,
+      title: 'OGarden Location 2'
+  });
+
+}
+var button = document.getElementById('btnFind');
+
+var onClick = function() {
+    initialize();
+};
+button.addEventListener('click', onClick, false);
+
+// Initialize for Show directions
+var directionsDisplay;
+var directionsService = new google.maps.DirectionsService();
+
+function initializeDir() {
+  directionsDisplay = new google.maps.DirectionsRenderer();
+  var mapOptions = {
+    zoom: 7,
+    center: new google.maps.LatLng(41.850033, -87.6500523)
+  };
+  var map = new google.maps.Map(document.getElementById('map'),
+      mapOptions);
+  directionsDisplay.setMap(map);
+  directionsDisplay.setPanel(document.getElementById('directions-panel'));
+}
+
+// Show direction to location 1
+function calcRoute(dirChoice) {
+    var start = '15095 West 123rd Street Olathe, KS 66062';
+    var end;
+    if (dirChoice == 1){
+        end = new google.maps.LatLng(38.913209, -94.760504);
+    }
+    else{
+        end = new google.maps.LatLng(38.957052,-94.663555);
+    }
+  var request = {
+    origin: start,
+    destination: end,
+    travelMode: google.maps.TravelMode.DRIVING
+  };
+  directionsService.route(request, function(response, status) {
+    if (status == google.maps.DirectionsStatus.OK) {
+      directionsDisplay.setDirections(response);
+    }
+  });
+}
+
+
+var btnDir1 = document.getElementById('btnDirLocation1');
+var onClick1 = function() {
+    initializeDir();
+    calcRoute("1");
+};
+var btnDir2 = document.getElementById('btnDirLocation2');
+var onClick2 = function() {
+    initializeDir();
+    calcRoute("2");
+};
+
+btnDir1.addEventListener('click', onClick1, false);
+btnDir2.addEventListener('click', onClick2, false);
+
+var btnMashup = document.getElementById('btnShowWeather');
+
+function showWeatherMap() {
+  var mapOptions = {
+    zoom: 6,
+    center: new google.maps.LatLng(38.913209, -94.760504)
+  };
+
+ // alert("mashup click");
+    
+  var map = new google.maps.Map(document.getElementById('Weather'),
+      mapOptions);
+
+  var weatherLayer = new google.maps.weather.WeatherLayer({
+    temperatureUnits: google.maps.weather.TemperatureUnit.FAHRENHEIT
+  });
+  weatherLayer.setMap(map);
+
+  var cloudLayer = new google.maps.weather.CloudLayer();
+  cloudLayer.setMap(map);
+}
+
+//google.maps.event.addDomListener(window, 'load', initializeWeather);
+
+var onMashupClick = function() {
+  //  alert("click fired");
+    showWeatherMap();
+};
+
+btnMashup.addEventListener('click', onMashupClick, false);
+
+// Call RESTful service
+$('#btnCallAjax').click(function () {
+    //jQuery.support.cors = true;
+
+    $.ajax(
+        {
+            type: "GET",
+            url: "http://10.0.2.2:53231/Service1.svc/data/40",
+            
+            success: function (data) {
+
+                alert('success. data = ' + data);
+              
+            },
+            error: function (msg, url, line) {
+                alert('error trapped in error: function(msg, url, line)');
+                alert('msg = ' + msg + ', url = ' + url + ', line = ' + line);
+
+            }
+        });
+
+
+    alert('Service button click');
+
+});
+
+$('#MenuItems li').click(function () {
+    var selMenuItem = $(this).text();
+    
+
+    $.ajax(
+        {
+            type: "GET",
+            url: "http://10.0.2.2/aspnet_client/WcfService1/Service1.svc/data/"+selMenuItem,
+            
+            success: function (data) {
+
+             
+				document.getElementById('menuitemprice').innerHTML = "The price for " + selMenuItem + " is $" + data.Price;    
+            },
+            error: function (msg, url, line) {
+                alert('error trapped in error: function(msg, url, line)');
+                alert('msg = ' + msg + ', url = ' + url + ', line = ' + line);
+
+            }
+        });
+    
+});
+
+$('#MenuItemsDesc li').click(function () {
+   var selMenuDesc = $(this).text();
+   
+
+    $.ajax(
+        {
+            type: "GET",
+            url: "http://10.0.2.2/aspnet_client/WcfService1/Service1.svc/descrp/"+selMenuDesc,
+           
+            success: function (data) {
+
+                
+				document.getElementById('menuitemsdesc').innerHTML = "The description for " + selMenuDesc + " is <b>" + data.Description + "</b>";    
+            },
+            error: function (msg, url, line) {
+                alert('error trapped in error: function(msg, url, line)');
+                alert('msg = ' + msg + ', url = ' + url + ', line = ' + line);
+
+            }
+        });
+    
+});
+$('#btnSoap').click(function () { 
+	var url = "http://10.0.2.2/aspnet_client/SoapService/WebService1.asmx";
+	var pl = new SOAPClientParameters();
+	var p2 = new SOAPClientParameters();
+		
+		SOAPClient.invoke(url, "GetAddress1", pl, true, GetAddress1_callBack);
+		SOAPClient.invoke(url, "GetAddress2", p2, true, GetAddress2_callBack);
+});
+function GetAddress1_callBack(r)
+	{
+		
+		document.getElementById('SoapAddress').innerHTML = r;
+	}
+	function GetAddress2_callBack(r)
+	{
+		
+		document.getElementById('SoapAddress1').innerHTML = r;
+	}
+$('#btnShowReviews').click(function () { 
+	var url = "http://10.0.2.2/aspnet_client/SoapService/WebService1.asmx";
+	var pl = new SOAPClientParameters();
+	
+	SOAPClient.invoke(url, "queryTable", pl, true, queryTable_callBack);
+});
+function queryTable_callBack(r)
+{
+	
+	var i;
+	var reviews = "<p><b>Name - Age - City - ReviewText</b></p>";
+	for (i=0;i<r.length;++i)
+	{
+		reviews = reviews + "<p>" + r[i].Name + " - " + r[i].Age + " - " + r[i].City + " - " + r[i].ReviewText + "</p>";
+	}
+	document.getElementById('SoapDataBase').innerHTML = reviews;
+}
+
+$('#btnAddReview').click(function () { 
+	alert(document.getElementById('reviewName').value);
+	
+	var url = "http://10.0.2.2/aspnet_client/SoapService/WebService1.asmx";
+	var pl = new SOAPClientParameters();
+	pl.add ("name",document.getElementById('reviewName').value);
+	pl.add ("age",document.getElementById('reviewAge').value);
+	pl.add ("city",document.getElementById('reviewCity').value);
+	pl.add ("reviewText",document.getElementById('reviewText').value);
+	
+	SOAPClient.invoke(url, "InsertReview", pl, true, insertReview_callBack);
+});
+function insertReview_callBack(r)
+{
+	alert(r);
+}
+
+$('#btnRemoveReview').click(function () { 
+	alert(document.getElementById('reviewDelName').value);
+
+	var url = "http://10.0.2.2/aspnet_client/SoapService/WebService1.asmx";
+	var pl = new SOAPClientParameters();
+	pl.add ("reviewName",document.getElementById('reviewDelName').value);
+
+	alert("Before invoke");
+	SOAPClient.invoke(url, "RemoveReview", p1, true, removeReview_callBack);
+	alert("After invoke");
+});
+function removeReview_callBack(r)
+{
+	alert(r);
+}
+
+});//]]>  
+
+</script>
+
+
+</head>
+<body>
+  -<div data-role="http://jsfiddle.net/#savepage" id="page1"></div>
+<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=true&libraries=places"></script>
+<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&libraries=weather"></script> 
+<div data-role="page" id="page1">
+    <div data-role="header">
+         <h1> Restaurant Mobile Web Client Application </h1>
+
+    </div>
+    <div data-role="content">
+        <p><a href="#MenuEventPage" data-role="button"> Menu </a>
+        </p>
+        <p><a href="#Order1Online" data-role="button"> Order Online</a>
+        </p>
+        <p><a href="#LocationEventPage" data-role="button"> Local Locations </a>
+
+        </p>
+      <p><a id ="MashUp" href="#MashUpPage" data-role="button"> Mash Up</a> 
+
+        </p>
+		<p><a href="#WebService" data-role="button"> Web Service</a>
+
+        </p>
+        
+        <p><a href="#AboutEventPage" data-role="button"> About Us</a>
+
+        </p>
+        
+    </div>
+</div>
+
+            
+<div data-role="page" id="LocationEventPage">
+    <div data-role="header"> <a data-rel="back" data-icon="home">Home</a>
+        <h1>Local Locations </h1>
+    </div>
+    <div data-role="content"></div>
+   <button id="btnFind">Show Locations</button>
+    
+    <div id="locationsmap">
+        <div id="map"></div>
+        <button id="btnDirLocation1">Direction To Location 1</button>
+        <button id="btnDirLocation2">Direction To Location 2</button>
+        <div id="directions-panel"></div>
+    </div>
+    <div id="map-canvas"></div>
+</div>
+<div data-role="page" id="Order1Online">
+ <div data-role="header"> <a data-rel="back" data-icon="home">Home</a>
+<h1> Order Online </h1>
+</div>
+<div data-role="content"></div>
+    <div id="MenuItems" data-role="fieldcontain"> 
+        <h2>Available Items </h2>
+        <div id="menuitemprice">Select menu item for price.</div>
+                <li>French Fries</li>
+                <li>Sweet Potato Fries</li>
+                <li>Spinich Dip</li>
+                <li>Garden Salad</li>
+                <li>Ceaser Salad</li>
+                <li>Chicken Pasta</li>
+                <li>Chicken Sandwich</li>
+</div>
+
+   
+   <input type="text" placeholder="Please choose from the list above" id="inputString" style="width:50%" /> 
+
+<table>
+    <tr>
+        <td>
+    <button id = "addItems" onclick="saveStatusLocally()">Add Items</button>
+    </td>
+
+    <td>
+<button id = "reviewItems" onclick="readStatus()">Review Items Added</button>
+    </td>
+    <td>
+        <button id ="clearItems" onclick="clearStorage()">Clear Items</button>
+    </td>
+    </tr>
+    </table>
+<div id="write"></div>
+ 
+</div>
+
+
+<div data-role="page" id="MashUpPage">
+    <div data-role="header"> <a data-rel="back" data-icon="home">Home</a>
+        <h1>Mash Up </h1>
+    </div>
+    <div data-role="content">
+<button id="btnShowWeather"> Show Weather </button>
+      <div id="Weather"></div> 
+        <div id="chart">
+            <section id="left-column"> 
+        <h2>Finance chart </h2>
+    <img src="http://chart.finance.yahoo.com/z?s=DRI&t=1d&q=l&z=l&p=m50,m200
+" height="150" width="400"/>
+            </section>
+        </div> 
+    </div>
+</div> 
+
+
+<div data-role="page" id="AboutEventPage">
+    <div data-role="header"> <a data-rel="back" data-icon="home">Home</a>
+        <h1>About Us </h1>
+    </div>
+    <div data-role="content"></div>
+    <div data-role="fieldcontain">
+    <label for="About Us"> </label>
+        
+     <div id="AboutUs" word-wrap="break-word" class="ui-overlay-shadow ui-corner-all">OGarden is a family of more than 780 local restaurants committed to providing every guest with a genuine Italian dining experience.Here, in a quaint Tuscan village, more than 1,200 of our chefs and managers have been inspired by authentic Italian cuisine.To capture the welcoming atmosphere of a Tuscan farmhouse, we’re redesigning more than 350 of our restaurants.</div>
+    </div>	
+
+</div>
+<div data-role="page" id="WebService">
+ <div data-role="header"> <a data-rel="back" data-icon="home">Home</a>
+<h1> Web Service </h1> </div>
+
+<div data-role="content"></div>
+   
+    <div id="MenuItemsDesc" data-role="fieldcontain"> 
+        <h2>Description of Items</h2>
+		<p>Select menu item to display Description (Rest Web Service).</p>
+        <div id="menuitemsdesc"></div>
+                <li>French Fries</li>
+                <li>Sweet Potato Fries</li>
+                <li>Spinach Dip</li>
+                <li>Garden Salad</li>
+                <li>Caesar Salad</li>
+                <li>Chicken Pasta</li>
+                <li>Chicken Sandwich</li>
+		
+		<hr/>
+		<div>
+			<h2>Location Address</h2>
+			<p>Click on the button to display locations(Soap Web Service).</p>
+			<button id="btnSoap">Show Locations</button>
+		   <div id = "SoapAddress"> </div>
+		   <p></p>
+		   <div id = "SoapAddress1"> </div>
+		</div>
+		<hr/>
+	<div>
+		<h2>Soap Service with Database</h2>
+		<table style="width:100%" >
+			<tr>
+				<td style="width:100%" >
+					<button id="btnShowReviews">Show Reviews</button>
+				   <div id = "SoapDataBase"> </div>
+				   <hr/>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<input type="text" placeholder="Name" id="reviewDelName" /> 
+					<button id ="btnRemoveReview">Remove Review</button>
+					<hr/>
+				</td>
+			</tr>
+			<tr>
+				<td style="width:100%" >
+					<input type="text" placeholder="Name" id="reviewName" /> 
+					<input type="text" placeholder="Age" id="reviewAge" /> 
+					<input type="text" placeholder="City" id="reviewCity" /> 
+					<input type="text" placeholder="Review" id="reviewText" /> 
+					
+					<button id = "btnAddReview">Add Review</button>
+					
+				</td>
+			</tr>
+		</table> 
+	</div>
+	
+<div data-role="page" id="MenuEventPage">
+    <div data-role="header"> <a data-rel="back" data-icon="home">Home</a>
+
+         <h1>Menu Main Page</h1>
+
+    </div>
+    <div data-role="content">
+        <p><a href="#AppetizerPopup" data-rel="popup" data-role="button">Appetizers</a>
+        </p>
+        <div data-role="popup" id="AppetizerPopup">
+            <ul data-role="listview" data-inset="true" style="min-width:210px;" data-theme="b">
+                <li>French Fries</li>
+                <li>Sweet Potato Fries</li>
+                <li>Spinach Dip</li>
+            </ul>
+        </div>
+        <p><a href="#SaladPopup" data-rel="popup" data-role="button"> Salad </a>
+        </p>
+        <div data-role="popup" id="SaladPopup">
+            <ul data-role="listview" data-inset="true" style="min-width:210px;" data-theme="b">
+                <li>Garden Salad</li>
+                <li>Caesar Salad</li>
+            </ul>
+        </div>
+        <p><a href="#MainCoursePopup" data-rel="popup" data-role="button"> Main Course </a></p>
+        <div data-role="popup" id="MainCoursePopup">
+        <ul data-role="listview" data-inset="true" style="min-width:210px;" data-theme="b">
+            <li>Chicken Pasta</li>
+            <li>Chicken Sandwich</li>
+        </ul>
+        </div>
+            <a href="#popupDessert" data-rel="popup" data-role="button">Dessert</a>
+
+        <div data-role="popup" id="popupDessert">Cheesecake
+            <img src="http://4.bp.blogspot.com/-ejzfChmuuH4/Tpr9SAieYsI/AAAAAAAABN4/TZwGNaWRqOI/s400/pumpkin+cheesecake+cake.jpg">
+        </div>
+            
+    
+            <div data-role="page" id="CateringEventPage">
+            <div data-role="header"> <a data-rel="back" data-icon="home">Home</a>
+
+                 <h1>Find A Location </h1>
+
+            </div>
+            <div data-role="content"></div>
+        </div>
+  
+</body>
+
+
+</html>
+
